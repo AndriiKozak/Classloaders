@@ -13,16 +13,16 @@ import java.net.URLClassLoader;
  * @author Andrii_Kozak1
  */
 public class MyClassLoader extends URLClassLoader {
-    
+
     public MyClassLoader(URL... urls) {
         super(urls, ClassLoader.getSystemClassLoader().getParent());
     }
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
-        System.out.println("looking for: "+ name);
+        System.out.println("looking for: " + name);
         return super.loadClass(name);
-       // return findClass(name);
+        // return findClass(name);
     }
-    
+
 }

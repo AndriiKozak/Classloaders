@@ -10,8 +10,8 @@ package classloaders;
  * @author Andrii_Kozak1
  */
 public class MyClass {
-    private int field;
 
+    private int field;
 
     public int getField() {
         return field;
@@ -21,7 +21,6 @@ public class MyClass {
         this.field = field;
     }
 
-    
     public MyClass(int field) {
         this.field = field;
     }
@@ -50,5 +49,5 @@ public class MyClass {
         }
         return true;
     }
-    
+
 }
