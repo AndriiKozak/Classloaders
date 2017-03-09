@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -28,6 +29,10 @@ public class Duplicator {
     }
 
     public Object duplicate(Object target) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        return duplicate(target, new IdentityHashMap<>());
+    }
+
+    private Object duplicate(Object target, Map<Object, Object> processed) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Class targetClass = target.getClass();
         Class dupeClass = classLoader.loadClass(targetClass.getName());
         Constructor[] constructors = dupeClass.getConstructors();
@@ -65,7 +70,7 @@ public class Duplicator {
         if (dupe == null) {
             throw new InstantiationException();
         }
-
+        processed.put(target, dupe);
         Map<String, Field> dupeFields = getAllFields(dupeClass);
         try {
             for (Entry<String, Field> entry : getAllFields(targetClass).entrySet()) {
@@ -75,7 +80,15 @@ public class Duplicator {
                 targetField.setAccessible(true);
                 dupeField.setAccessible(true);
                 Object value = targetField.get(target);
-                dupeField.set(dupe, value);
+                if (dupeField.getType().isPrimitive() || dupeField.getType().equals(value.getClass())) {
+                    dupeField.set(dupe, value);
+                } else {
+                    if (processed.containsKey(value)) {
+                        dupeField.set(dupe, processed.get(dupe));
+                    } else {
+                        dupeField.set(dupe, duplicate(value, processed));
+                    }
+                }
                 targetField.setAccessible(accesible);
                 dupeField.setAccessible(accesible);
 
@@ -90,7 +103,7 @@ public class Duplicator {
         Map<String, Field> result = new HashMap<>();
 
         for (Class parent = clazz; parent != null; parent = parent.getSuperclass()) {
-            Arrays.stream(clazz.getDeclaredFields()).forEach(field -> result.put(field.getName(), field));
+            Arrays.stream(parent.getDeclaredFields()).forEach(field -> result.put(field.getName(), field));
         }
         return result;
     }

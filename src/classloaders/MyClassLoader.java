@@ -5,8 +5,11 @@
  */
 package classloaders;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -20,9 +23,16 @@ public class MyClassLoader extends URLClassLoader {
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
-        System.out.println("looking for: " + name);
+        String pathName = name.replace(".", "/") + ".class";
+        ClassLoader sc = ClassLoader.getSystemClassLoader();
+        String resource = sc.getResource(pathName).toString();
+        try {
+            URL toDir = new URL(resource.substring(0, resource.length() - pathName.length()));
+            super.addURL(toDir);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(MyClassLoader.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return super.loadClass(name);
-        // return findClass(name);
     }
 
 }
